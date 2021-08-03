@@ -24,24 +24,26 @@ func (s *Sequential) Find() ([]string, error) {
 
 	var files []string
 	for s.pos < len(s.paths) {
-		f, err := s.process(s.paths[s.pos])
+		d, f, err := process(s.paths[s.pos])
 		if err != nil {
 			fmt.Printf("ERROR: %s\n", err.Error())
 		}
 		files = append(files, f...)
+		s.paths = append(s.paths, d...)
 		s.pos++
 	}
 
 	return files, nil
 }
 
-func (s *Sequential) process(path string) ([]string, error) {
+func process(path string) ([]string, []string, error) {
 	dir, err := os.ReadDir(path)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	var files []string
+	var dirs []string
 	for _, f := range dir {
 		if f.Name() == "." || f.Name() == ".." {
 			continue
@@ -53,8 +55,8 @@ func (s *Sequential) process(path string) ([]string, error) {
 			continue
 		}
 
-		s.paths = append(s.paths, fp)
+		dirs = append(dirs, fp)
 	}
 
-	return files, nil
+	return dirs, files, nil
 }

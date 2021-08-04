@@ -15,11 +15,26 @@ func TestFind(t *testing.T) {
 	tmp, clean, expected := prepareFindTmp(t, 10, 100, 2)
 	defer clean()
 
-	f := New(tmp, 1)
-	files, err := f.Find()
-	require.NoError(t, err)
+	t.Run("sequential", func(t *testing.T) {
+		f := New(tmp, 1)
+		files, err := f.Find()
+		require.NoError(t, err)
+		require.Equal(t, expected, cleanFiles(tmp, files))
+	})
 
-	require.Equal(t, expected, cleanFiles(tmp, files))
+	t.Run("parallel-2", func(t *testing.T) {
+		f := New(tmp, 2)
+		files, err := f.Find()
+		require.NoError(t, err)
+		require.Equal(t, expected, cleanFiles(tmp, files))
+	})
+
+	t.Run("parallel-8", func(t *testing.T) {
+		f := New(tmp, 8)
+		files, err := f.Find()
+		require.NoError(t, err)
+		require.Equal(t, expected, cleanFiles(tmp, files))
+	})
 }
 
 func prepareFindTmp(

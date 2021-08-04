@@ -112,6 +112,27 @@ func TestFindMatchRegexp(t *testing.T) {
 	require.Equal(t, expected, cleanFiles(tmp, files))
 }
 
+func TestFindMatchExtension(t *testing.T) {
+	tmp, clean, allFiles := prepareFindTmp(t, 5, 10, 2)
+	defer clean()
+
+	var expected []string
+	for _, f := range allFiles {
+		if strings.HasSuffix(f, ".ext") {
+			expected = append(expected, f)
+		}
+	}
+
+	f := New(tmp, Options{
+		Hidden:         true,
+		MatchExtension: "ext",
+		Workers:        1,
+	})
+	files, err := f.Find()
+	require.NoError(t, err)
+	require.Equal(t, expected, cleanFiles(tmp, files))
+}
+
 func prepareFindTmp(
 	t *testing.T,
 	dirs, files, depth int,

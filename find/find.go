@@ -10,10 +10,10 @@ import (
 )
 
 type Options struct {
-	Hidden      bool
-	MatchString string
-	MatchRegexp string
-	// MatchExtension string
+	Hidden         bool
+	MatchString    string
+	MatchRegexp    string
+	MatchExtension string
 	// Execute        func(path string) error
 
 	Workers int
@@ -35,6 +35,11 @@ func New(path string, opts Options) *Find {
 	workers := opts.Workers
 	if workers == 0 {
 		workers = runtime.NumCPU()
+	}
+
+	if opts.MatchExtension != "" &&
+		!strings.HasPrefix(opts.MatchExtension, ".") {
+		opts.MatchExtension = "." + opts.MatchExtension
 	}
 
 	return &Find{
@@ -173,6 +178,11 @@ func (f *Find) process(path string) ([]string, []string, error) {
 		}
 
 		if f.regexp != nil && !f.regexp.MatchString(fp) {
+			continue
+		}
+
+		if f.opts.MatchExtension != "" &&
+			!strings.HasSuffix(fp, f.opts.MatchExtension) {
 			continue
 		}
 

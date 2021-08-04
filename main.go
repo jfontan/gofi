@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"time"
+
+	"github.com/jfontan/gofind/find"
 )
 
 func main() {
@@ -12,7 +14,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	sequential := NewSequential(os.Args[1])
+	sequential := find.New(os.Args[1], 1)
 
 	start := time.Now()
 	files, err := sequential.Find()
@@ -22,7 +24,7 @@ func main() {
 	}
 	println("Time:", time.Since(start).String(), "Files:", len(files))
 
-	parallel := NewParallel(os.Args[1], 8)
+	parallel := find.New(os.Args[1], 8)
 
 	start = time.Now()
 	files, err = parallel.Find()

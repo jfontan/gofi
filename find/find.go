@@ -2,6 +2,7 @@ package find
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -14,7 +15,7 @@ type Options struct {
 	MatchString    string
 	MatchRegexp    string
 	MatchExtension string
-	// Execute        func(path string) error
+	Callback       func(path string, entry fs.DirEntry) error
 
 	Workers int
 }
@@ -184,6 +185,13 @@ func (f *Find) process(path string) ([]string, []string, error) {
 		if f.opts.MatchExtension != "" &&
 			!strings.HasSuffix(fp, f.opts.MatchExtension) {
 			continue
+		}
+
+		if f.opts.Callback != nil {
+			err := f.opts.Callback(fp, file)
+			if err != nil {
+				return nil, nil, fmt.Errorf("callback error: %w", err)
+			}
 		}
 
 		files = append(files, fp)

@@ -2,6 +2,7 @@ package find
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -129,6 +130,32 @@ func TestFindMatchExtension(t *testing.T) {
 		Workers:        1,
 	})
 	files, err := f.Find()
+	require.NoError(t, err)
+	require.Equal(t, expected, cleanFiles(tmp, files))
+}
+
+func TestFindCallback(t *testing.T) {
+	tmp, clean, expected := prepareFindTmp(t, 5, 10, 2)
+	defer clean()
+
+	var files []string
+	callback := func(p string, e fs.DirEntry) error {
+		if strings.HasPrefix(e.Name(), "f") || strings.HasPrefix(e.Name(), ".f") {
+			require.False(t, e.IsDir())
+		} else {
+			require.True(t, e.IsDir())
+		}
+
+		files = append(files, p)
+		return nil
+	}
+
+	f := New(tmp, Options{
+		Hidden:   true,
+		Callback: callback,
+		Workers:  1,
+	})
+	_, err := f.Find()
 	require.NoError(t, err)
 	require.Equal(t, expected, cleanFiles(tmp, files))
 }

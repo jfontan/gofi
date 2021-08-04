@@ -10,8 +10,8 @@ import (
 )
 
 type Options struct {
-	Hidden bool
-	// MatchString    string
+	Hidden      bool
+	MatchString string
 	// MatchRegexp    string
 	// MatchExtension string
 	// Execute        func(path string) error
@@ -158,11 +158,16 @@ func (f *Find) process(path string) ([]string, []string, error) {
 		}
 
 		fp := filepath.Join(path, n)
-		files = append(files, fp)
-
 		if file.Type().IsDir() {
 			dirs = append(dirs, fp)
 		}
+
+		if f.opts.MatchString != "" &&
+			!strings.Contains(fp, f.opts.MatchString) {
+			continue
+		}
+
+		files = append(files, fp)
 	}
 
 	return dirs, files, nil

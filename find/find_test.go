@@ -66,6 +66,27 @@ func TestFindNoHidden(t *testing.T) {
 	require.Equal(t, expected, cleanFiles(tmp, files))
 }
 
+func TestFindMatchString(t *testing.T) {
+	tmp, clean, allFiles := prepareFindTmp(t, 5, 10, 2)
+	defer clean()
+
+	var expected []string
+	for _, f := range allFiles {
+		if strings.Contains(f, "d0") {
+			expected = append(expected, f)
+		}
+	}
+
+	f := New(tmp, Options{
+		Hidden:      true,
+		MatchString: "d0",
+		Workers:     1,
+	})
+	files, err := f.Find()
+	require.NoError(t, err)
+	require.Equal(t, expected, cleanFiles(tmp, files))
+}
+
 func prepareFindTmp(
 	t *testing.T,
 	dirs, files, depth int,

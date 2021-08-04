@@ -1,3 +1,26 @@
+// package find implements a filesystem tree walker and filter. Similar to
+// unix command "find".
+//
+// Using default options it returns all the files and directories in the
+// provided path except hidden ones. If Option.Workers is 1 it sequentially
+// reads all directories. If Option.Workers is greater than 0 it parallelizes
+// the work with that amount of goroutines. Option.Workers = 0 means the same
+// number as CPU count.
+//
+// NOTE: the list of files is not ordered and it can be different in every run.
+//
+// There are a number of options that can be used to filter the list of files.
+// For example, to return only non hidden files and directories with extension
+// ".go" use:
+//
+//		f := find.New("/path/to/files", find.Options{
+//			Hidden: false,
+//			MatchExtension: "go",
+//		})
+//		files, _ := f.Find()
+//
+// You can also specify a callback function that will be executed for all files
+// and directories that match the filters.
 package find
 
 import (
@@ -10,16 +33,25 @@ import (
 	"strings"
 )
 
+// Options change the default behavior of Find.
 type Options struct {
-	Hidden         bool
-	MatchString    string
-	MatchRegexp    string
+	// Hidden tells if hidden files and directories are returned.
+	Hidden bool
+	// MatchString filters files that not contain the provided string.
+	MatchString string
+	// MathRegexp filters files that not match the provided regexp.
+	MatchRegexp string
+	// MatchExtension filters files that do not have the provided extension.
 	MatchExtension string
-	Callback       func(path string, entry fs.DirEntry) error
+	// Callback is executed for each file not filtered.
+	Callback func(path string, entry fs.DirEntry) error
 
+	// Workers specify the number of parallel goroutines to find and filter
+	// files. 0 means the same number as CPUs.
 	Workers int
 }
 
+// Find lists and filters files and directories in a provided path.
 type Find struct {
 	root  string
 	paths []string
@@ -32,6 +64,7 @@ type Find struct {
 	active  int
 }
 
+// New creates a new Find. You can use find.Options{} for default options.
 func New(path string, opts Options) *Find {
 	workers := opts.Workers
 	if workers == 0 {
@@ -56,6 +89,7 @@ type result struct {
 	err   error
 }
 
+// Find searches the filesystem for files with the provided options.
 func (f *Find) Find() ([]string, error) {
 	if f.opts.MatchRegexp != "" {
 		rg, err := regexp.Compile(f.opts.MatchRegexp)

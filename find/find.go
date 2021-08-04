@@ -158,12 +158,11 @@ func (f *Find) process(path string) ([]string, []string, error) {
 		}
 
 		fp := filepath.Join(path, n)
-		if !file.Type().IsDir() {
-			files = append(files, fp)
-			continue
-		}
+		files = append(files, fp)
 
-		dirs = append(dirs, fp)
+		if file.Type().IsDir() {
+			dirs = append(dirs, fp)
+		}
 	}
 
 	return dirs, files, nil

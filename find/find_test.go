@@ -101,6 +101,7 @@ func mkFindDir(path string, dirs, files, depth int) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
+		generated = append(generated, p)
 		generated = append(generated, f...)
 
 		p = filepath.Join(path, fmt.Sprintf(".d%d", i))
@@ -112,6 +113,7 @@ func mkFindDir(path string, dirs, files, depth int) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
+		generated = append(generated, p)
 		generated = append(generated, f...)
 	}
 

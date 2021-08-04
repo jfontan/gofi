@@ -12,7 +12,7 @@ import (
 type Options struct {
 	Hidden      bool
 	MatchString string
-	// MatchRegexp    string
+	MatchRegexp string
 	// MatchExtension string
 	// Execute        func(path string) error
 
@@ -25,7 +25,7 @@ type Find struct {
 	pos   int
 
 	opts   Options
-	regexp regexp.Regexp
+	regexp *regexp.Regexp
 
 	workers int
 	active  int
@@ -36,10 +36,6 @@ func New(path string, opts Options) *Find {
 	if workers == 0 {
 		workers = runtime.NumCPU()
 	}
-
-	// var rg regexp.Regexp
-	// if opts.MatchRegexp != "" {
-	// }
 
 	return &Find{
 		root:    path,
@@ -55,6 +51,15 @@ type result struct {
 }
 
 func (f *Find) Find() ([]string, error) {
+	if f.opts.MatchRegexp != "" {
+		rg, err := regexp.Compile(f.opts.MatchRegexp)
+		if err != nil {
+			return nil, fmt.Errorf("invalid regexp: %w", err)
+		}
+
+		f.regexp = rg
+	}
+
 	if f.workers > 1 {
 		return f.findParallel()
 	}
@@ -164,6 +169,10 @@ func (f *Find) process(path string) ([]string, []string, error) {
 
 		if f.opts.MatchString != "" &&
 			!strings.Contains(fp, f.opts.MatchString) {
+			continue
+		}
+
+		if f.regexp != nil && !f.regexp.MatchString(fp) {
 			continue
 		}
 

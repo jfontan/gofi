@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"testing"
@@ -80,6 +81,30 @@ func TestFindMatchString(t *testing.T) {
 	f := New(tmp, Options{
 		Hidden:      true,
 		MatchString: "d0",
+		Workers:     1,
+	})
+	files, err := f.Find()
+	require.NoError(t, err)
+	require.Equal(t, expected, cleanFiles(tmp, files))
+}
+
+func TestFindMatchRegexp(t *testing.T) {
+	tmp, clean, allFiles := prepareFindTmp(t, 5, 10, 2)
+	defer clean()
+
+	rg, err := regexp.Compile(`d[0-9]`)
+	require.NoError(t, err)
+
+	var expected []string
+	for _, f := range allFiles {
+		if rg.MatchString(f) {
+			expected = append(expected, f)
+		}
+	}
+
+	f := New(tmp, Options{
+		Hidden:      true,
+		MatchRegexp: `d[0-9]`,
 		Workers:     1,
 	})
 	files, err := f.Find()

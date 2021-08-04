@@ -1,4 +1,4 @@
-module github.com/jfontan/gofind
+module github.com/jfontan/gofi
 
 go 1.16
 

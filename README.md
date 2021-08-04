@@ -1,4 +1,4 @@
-# gofind
+# gofi
 
 Package find implements a filesystem tree walker and filter. Similar to unix command "find".
 
@@ -9,7 +9,7 @@ NOTE: the list of files is not ordered and it can be different in every run.
 There are a number of options that can be used to filter the list of files.  For example, to return only non hidden files and directories with extension ".go" use:
 
 ```go
-import "github.com/jfontan/gofind/find"
+import "github.com/jfontan/gofi/find"
 
 ...
 

@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/jfontan/gofind/find"
+	"github.com/jfontan/gofi/find"
 )
 
 func main() {

@@ -166,7 +166,7 @@ func prepareFindTmp(
 ) (string, func(), []string) {
 	t.Helper()
 
-	path, err := os.MkdirTemp("", "gofind-")
+	path, err := os.MkdirTemp("", "gofi-")
 	require.NoError(t, err)
 
 	generated, err := mkFindDir(path, dirs, files, depth)

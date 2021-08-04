@@ -11,30 +11,59 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestFind(t *testing.T) {
+func TestFindAll(t *testing.T) {
 	tmp, clean, expected := prepareFindTmp(t, 10, 100, 2)
 	defer clean()
 
 	t.Run("sequential", func(t *testing.T) {
-		f := New(tmp, 1)
+		f := New(tmp, Options{
+			Hidden:  true,
+			Workers: 1,
+		})
 		files, err := f.Find()
 		require.NoError(t, err)
 		require.Equal(t, expected, cleanFiles(tmp, files))
 	})
 
 	t.Run("parallel-2", func(t *testing.T) {
-		f := New(tmp, 2)
+		f := New(tmp, Options{
+			Hidden:  true,
+			Workers: 2,
+		})
 		files, err := f.Find()
 		require.NoError(t, err)
 		require.Equal(t, expected, cleanFiles(tmp, files))
 	})
 
 	t.Run("parallel-8", func(t *testing.T) {
-		f := New(tmp, 8)
+		f := New(tmp, Options{
+			Hidden:  true,
+			Workers: 8,
+		})
 		files, err := f.Find()
 		require.NoError(t, err)
 		require.Equal(t, expected, cleanFiles(tmp, files))
 	})
+}
+
+func TestFindNoHidden(t *testing.T) {
+	tmp, clean, allFiles := prepareFindTmp(t, 5, 10, 2)
+	defer clean()
+
+	var expected []string
+	for _, f := range allFiles {
+		if !strings.Contains(f, "/.") {
+			expected = append(expected, f)
+		}
+	}
+
+	f := New(tmp, Options{
+		Hidden:  false,
+		Workers: 1,
+	})
+	files, err := f.Find()
+	require.NoError(t, err)
+	require.Equal(t, expected, cleanFiles(tmp, files))
 }
 
 func prepareFindTmp(

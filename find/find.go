@@ -4,21 +4,47 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
+	"runtime"
+	"strings"
 )
+
+type Options struct {
+	Hidden bool
+	// MatchString    string
+	// MatchRegexp    string
+	// MatchExtension string
+	// Execute        func(path string) error
+
+	Workers int
+}
 
 type Find struct {
 	root  string
 	paths []string
 	pos   int
 
+	opts   Options
+	regexp regexp.Regexp
+
 	workers int
 	active  int
 }
 
-func New(path string, workers int) *Find {
+func New(path string, opts Options) *Find {
+	workers := opts.Workers
+	if workers == 0 {
+		workers = runtime.NumCPU()
+	}
+
+	// var rg regexp.Regexp
+	// if opts.MatchRegexp != "" {
+	// }
+
 	return &Find{
 		root:    path,
 		workers: workers,
+		opts:    opts,
 	}
 }
 
@@ -122,11 +148,16 @@ func (f *Find) process(path string) ([]string, []string, error) {
 	var files []string
 	var dirs []string
 	for _, file := range dir {
-		if file.Name() == "." || file.Name() == ".." {
+		n := file.Name()
+		if n == "." || n == ".." {
 			continue
 		}
 
-		fp := filepath.Join(path, file.Name())
+		if !f.opts.Hidden && strings.HasPrefix(n, ".") {
+			continue
+		}
+
+		fp := filepath.Join(path, n)
 		if !file.Type().IsDir() {
 			files = append(files, fp)
 			continue

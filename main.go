@@ -14,7 +14,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	sequential := find.New(os.Args[1], 1)
+	sequential := find.New(os.Args[1], find.Options{
+		Hidden:  true,
+		Workers: 1,
+	})
 
 	start := time.Now()
 	files, err := sequential.Find()
@@ -24,7 +27,10 @@ func main() {
 	}
 	println("Time:", time.Since(start).String(), "Files:", len(files))
 
-	parallel := find.New(os.Args[1], 8)
+	parallel := find.New(os.Args[1], find.Options{
+		Hidden:  true,
+		Workers: 8,
+	})
 
 	start = time.Now()
 	files, err = parallel.Find()

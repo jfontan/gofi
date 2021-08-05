@@ -23,6 +23,14 @@ To search for all files in another directory use an empty search string `""`. Fo
 $ gofi "" /another/directory
 ```
 
+To install it you can download the binaries from the latest release: https://github.com/jfontan/gofi/releases/latest
+
+You can also install it with go:
+
+```
+$ go install github.com/jfontan/gofi
+```
+
 ## Library
 
 Documentation: https://pkg.go.dev/github.com/jfontan/gofi/find

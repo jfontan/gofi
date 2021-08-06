@@ -31,6 +31,8 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+
+	"github.com/jfontan/fifo"
 )
 
 // Options change the default behavior of Find.
@@ -53,15 +55,10 @@ type Options struct {
 
 // Find lists and filters files and directories in a provided path.
 type Find struct {
-	root  string
-	paths []string
-	pos   int
-
-	opts   Options
-	regexp *regexp.Regexp
-
+	root    string
+	opts    Options
+	regexp  *regexp.Regexp
 	workers int
-	active  int
 }
 
 // New creates a new Find. You can use find.Options{} for default options.
@@ -113,40 +110,47 @@ func (f *Find) findParallel() ([]string, error) {
 		go f.worker(work, result)
 	}
 
-	f.paths = []string{f.root}
-	f.pos = 0
-	f.active = 0
+	paths := fifo.NewString()
+	active := 0
 
 	var files []string
+	path := f.root
+	value := true
 	for {
-		if f.pos < len(f.paths) {
+		if value {
 			select {
-			case work <- f.paths[f.pos]:
-				f.pos++
-				f.active++
+			case work <- path:
+				path, value = paths.Pop()
+				active++
 			case res := <-result:
-				f.active--
+				active--
 				if res.err == nil {
-					f.paths = append(f.paths, res.dirs...)
+					paths.Push(res.dirs...)
 					files = append(files, res.files...)
 				} else {
 					fmt.Printf("ERROR: %s\n", res.err.Error())
 				}
 			}
 		} else {
-			if f.active == 0 {
+			path, value = paths.Pop()
+			if value {
+				continue
+			}
+
+			if active == 0 {
 				break
 			}
 
 			res := <-result
-			f.active--
+			active--
 			if res.err == nil {
-				f.paths = append(f.paths, res.dirs...)
+				paths.Push(res.dirs...)
 				files = append(files, res.files...)
 			} else {
 				fmt.Printf("ERROR: %s\n", res.err.Error())
 			}
 
+			path, value = paths.Pop()
 		}
 	}
 
@@ -155,18 +159,18 @@ func (f *Find) findParallel() ([]string, error) {
 }
 
 func (f *Find) findSequential() ([]string, error) {
-	f.paths = []string{f.root}
-	f.pos = 0
+	paths := fifo.NewString()
+	paths.Push(f.root)
 
 	var files []string
-	for f.pos < len(f.paths) {
-		d, fs, err := f.process(f.paths[f.pos])
+	for !paths.Empty() {
+		path, _ := paths.Pop()
+		d, fs, err := f.process(path)
 		if err != nil {
 			fmt.Printf("ERROR: %s\n", err.Error())
 		}
 		files = append(files, fs...)
-		f.paths = append(f.paths, d...)
-		f.pos++
+		paths.Push(d...)
 	}
 
 	return files, nil

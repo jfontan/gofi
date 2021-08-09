@@ -5,10 +5,14 @@ import (
 	"io/fs"
 	"os"
 	"runtime/pprof"
+	"strings"
+	"sync"
 
 	"github.com/jfontan/gofi/find"
 	flag "github.com/spf13/pflag"
 )
+
+const filesBlock = 100
 
 type Options struct {
 	Workers        int
@@ -54,12 +58,30 @@ func main() {
 		os.Exit(1)
 	}
 
+	var wg sync.WaitGroup
+	files := make([]string, 0, filesBlock)
+	filesChan := make(chan string)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for f := range filesChan {
+			files = append(files, f)
+			if len(files) >= filesBlock {
+				fmt.Println(strings.Join(files, "\n"))
+				files = files[:0]
+			}
+		}
+		if len(files) > 0 {
+			fmt.Println(strings.Join(files, "\n"))
+		}
+	}()
+
 	fopts := find.Options{
 		Hidden:         opts.Hidden,
 		MatchExtension: opts.MatchExtension,
 		Workers:        opts.Workers,
 		Callback: func(path string, entry fs.DirEntry) error {
-			fmt.Println(path)
+			filesChan <- path
 			return nil
 		},
 	}
@@ -86,6 +108,9 @@ func main() {
 		fmt.Printf("ERROR: %s\n", err.Error())
 		os.Exit(1)
 	}
+
+	close(filesChan)
+	wg.Wait()
 }
 
 func startPprof() (func(), error) {

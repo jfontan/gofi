@@ -189,7 +189,13 @@ func (f *Find) worker(work chan string, res chan result) {
 }
 
 func (f *Find) process(path string) ([]string, []string, error) {
-	dir, err := os.ReadDir(path)
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer file.Close()
+
+	dir, err := file.ReadDir(-1)
 	if err != nil {
 		return nil, nil, err
 	}

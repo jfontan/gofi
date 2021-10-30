@@ -4,6 +4,8 @@ This project implements a filesystem tree walker and filter. Similar to unix com
 
 It was developed mainly to experiment with parallel tree walking and command line interfaces.
 
+*Note:* This version uses generics so go 1.18 or go tip is required.
+
 ## Command
 
 The command functionality is very limited and inspired by [fd](https://github.com/sharkdp/fd). Use "fd" instead of this project for a fully featured parallel find replacement.

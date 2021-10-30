@@ -110,7 +110,7 @@ func (f *Find) findParallel() ([]string, error) {
 		go f.worker(work, result)
 	}
 
-	paths := fifo.NewString()
+	paths := fifo.NewChunk[string]()
 	active := 0
 
 	var files []string

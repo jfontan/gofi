@@ -11,9 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Install Go
-        run: |
-          curl -sL https://raw.githubusercontent.com/maxatome/install-go/v2.1/install-go.pl |
-              perl - tip $HOME/go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.18.x
 
       - name: Checkout code
         uses: actions/checkout@v2
